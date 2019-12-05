@@ -21,8 +21,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun populateUI() {
-        val hasdbs = hasDatabases()
+    private fun populateUI() {
+        val hasDBs = hasDatabases()
         findViewById<TextView>(R.id.tvDetection).apply {
             if (hasDatabases()) {
                 text = getString(R.string.whatsapp_detected)
@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
                 text = getString(R.string.whatsapp_undetected)
             }
         }
-        if (!hasdbs) {
+        if (!hasDBs) {
             return
         }
 
@@ -40,25 +40,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getDatabasesDir (): File {
+    private fun getDatabasesDir (): File {
         val root = Environment.getExternalStorageDirectory().absolutePath
         return File(root + DATABASES_DIR)
     }
 
-    fun hasDatabases(): Boolean {
+    private fun hasDatabases(): Boolean {
         val dir = getDatabasesDir()
-        if (dir.exists() && dir.isDirectory()) {
-            return true
-        } else {
-            return false
-        }
+        return (dir.exists() && dir.isDirectory())
     }
 
-    fun getDatabases(): ArrayList<String> {
+    private fun getDatabases(): ArrayList<String> {
         val databases = ArrayList<String>()
         val dir = getDatabasesDir()
         dir.walk().forEach {
-            if (it.isFile()) {
+            if (it.isFile) {
                 Logger.getLogger(MainActivity::class.java.name).warning("Seeing file " + it.name)
                 databases.add(it.name)
             }
