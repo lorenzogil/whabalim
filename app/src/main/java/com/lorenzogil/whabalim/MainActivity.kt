@@ -10,7 +10,9 @@ import java.util.logging.Logger
 
 class MainActivity : AppCompatActivity() {
 
-    val DATABASES_DIR = "/WhatsApp/Databases/"
+    private companion object {
+        private const val DATABASES_DIR = "/WhatsApp/Databases/"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,10 +26,10 @@ class MainActivity : AppCompatActivity() {
     private fun populateUI() {
         val hasDBs = hasDatabases()
         findViewById<TextView>(R.id.tvDetection).apply {
-            if (hasDatabases()) {
-                text = getString(R.string.whatsapp_detected)
+            text = if (hasDatabases()) {
+                getString(R.string.whatsapp_detected)
             } else {
-                text = getString(R.string.whatsapp_undetected)
+                getString(R.string.whatsapp_undetected)
             }
         }
         if (!hasDBs) {
@@ -47,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun hasDatabases(): Boolean {
         val dir = getDatabasesDir()
-        return (dir.exists() && dir.isDirectory())
+        return (dir.exists() && dir.isDirectory)
     }
 
     private fun getDatabases(): ArrayList<String> {
