@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val dbs = backups.map{it.name}.joinToString("\n")
-        val size = backups.map{it.size}.sum()
+        val size = backups.map{it.length()}.sum()
         findViewById<TextView>(R.id.tvDatabases).setText(dbs + " " + sizeString(size))
     }
 
@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         return "%.2f %s".format(space, unit)
     }
 
-    fun swEnabledClicked(view: View) {
-
+    fun onDeleteClicked(view: View) {
+        wab.deleteBackups(2)
     }
 }

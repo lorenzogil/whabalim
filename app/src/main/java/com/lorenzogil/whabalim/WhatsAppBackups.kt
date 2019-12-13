@@ -13,7 +13,7 @@ class WhatsAppBackups : ViewModel() {
         private const val DATABASES_DIR = "/WhatsApp/Databases/"
     }
 
-    private var backupFiles = ArrayList<BackupFile>()
+    private var backupFiles = ArrayList<File>()
 
     init {
         if (hasWhatsApp()) {
@@ -21,7 +21,7 @@ class WhatsAppBackups : ViewModel() {
         }
     }
 
-    fun backups () : ArrayList<BackupFile> = backupFiles
+    fun backups () : ArrayList<File> = backupFiles
 
     private fun getDatabasesDir (): File {
         val root = Environment.getExternalStorageDirectory().absolutePath
@@ -33,33 +33,37 @@ class WhatsAppBackups : ViewModel() {
         return (dir.exists() && dir.isDirectory)
     }
 
-    private fun loadBackupFiles(): ArrayList<BackupFile> {
-        val files = ArrayList<BackupFile>()
+    private fun loadBackupFiles(): ArrayList<File> {
+        val files = ArrayList<File>()
         val dir = getDatabasesDir()
         dir.walk().forEach {
             if (it.isFile) {
-                files.add(BackupFile(it.name, it.length()))
+                files.add(it)
             }
         }
         return files
     }
 
-    /*
-    public fun getDatabases(days: Int): ArrayList<String> {
-        val databases = ArrayList<String>()
+    fun deleteBackups(days: Int) {
         val now = Date().time
         val threshold = days * 24 * 60 * 60 * 1000
-        val dir = getDatabasesDir()
-        dir.walk().forEach {
-            if (it.isFile) {
+        val logger = Logger.getLogger(WhatsAppBackups::class.java.name)
+        backupFiles.forEach {
+            if (it.exists()) {
                 if ((now - it.lastModified()) > threshold) {
-                    Logger.getLogger(MainActivity::class.java.name)
-                        .warning("Seeing file " + it.name)
-                    databases.add(it.name)
+                    if (it.absoluteFile.delete()) {
+                        logger.info("Successfully removing file " + it.name)
+                    } else {
+                        if (it.exists()) {
+                            logger.warning("Error while removing the file " + it.name)
+                        } else {
+                            logger.severe("The file does not exists " + it.name)
+                        }
+                    }
                 }
+            } else {
+                logger.warning("The file does not exist anymore " + it.name)
             }
         }
-        return databases
     }
-    */
 }
