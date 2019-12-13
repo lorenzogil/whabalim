@@ -2,11 +2,10 @@ package com.lorenzogil.whabalim
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
+import android.view.View
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
-import java.io.File
-import java.util.logging.Logger
+import androidx.lifecycle.ViewModelProviders
 
 class MainActivity : AppCompatActivity() {
 
@@ -14,53 +13,60 @@ class MainActivity : AppCompatActivity() {
         private const val DATABASES_DIR = "/WhatsApp/Databases/"
     }
 
+    private lateinit var wab: WhatsAppBackups
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        wab = ViewModelProviders.of(this)[WhatsAppBackups::class.java]
+
         val permissions = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
         ActivityCompat.requestPermissions(this, permissions, 0).apply {
             populateUI()
         }
+
+        // https://developer.android.com/topic/libraries/architecture/workmanager
     }
 
     private fun populateUI() {
-        val hasDBs = hasDatabases()
+        val backups = wab.backups()
         findViewById<TextView>(R.id.tvDetection).apply {
-            text = if (hasDatabases()) {
+            text = if (backups.size > 0) {
                 getString(R.string.whatsapp_detected)
             } else {
                 getString(R.string.whatsapp_undetected)
             }
         }
-        if (!hasDBs) {
-            return
-        }
 
-        val dbs = getDatabases().joinToString("\n")
-        findViewById<TextView>(R.id.tvDatabases).apply {
-            text = dbs
-        }
+        val dbs = backups.map{it.name}.joinToString("\n")
+        val size = backups.map{it.size}.sum()
+        findViewById<TextView>(R.id.tvDatabases).setText(dbs + " " + sizeString(size))
     }
 
-    private fun getDatabasesDir (): File {
-        val root = Environment.getExternalStorageDirectory().absolutePath
-        return File(root + DATABASES_DIR)
-    }
-
-    private fun hasDatabases(): Boolean {
-        val dir = getDatabasesDir()
-        return (dir.exists() && dir.isDirectory)
-    }
-
-    private fun getDatabases(): ArrayList<String> {
-        val databases = ArrayList<String>()
-        val dir = getDatabasesDir()
-        dir.walk().forEach {
-            if (it.isFile) {
-                Logger.getLogger(MainActivity::class.java.name).warning("Seeing file " + it.name)
-                databases.add(it.name)
-            }
+    private fun sizeString (size: Long) : String {
+        val space : Double
+        val unit : String
+        val kilobyte = 1024
+        val megabyte = 1024L * kilobyte
+        val gigabyte = 1024 * megabyte
+        if (size > gigabyte) {
+            space = size.toDouble() / gigabyte
+            unit = "GB"
+        } else if (size > megabyte) {
+            space = size.toDouble() / megabyte
+            unit = "MB"
+        } else if (size > kilobyte) {
+            space = size.toDouble() / kilobyte
+            unit = "KB"
+        } else {
+            space = size.toDouble()
+            unit = "Bytes"
         }
-        return databases
+        return "%.2f %s".format(space, unit)
+    }
+
+    fun swEnabledClicked(view: View) {
+
     }
 }
