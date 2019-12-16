@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 
 class MainActivity : AppCompatActivity() {
@@ -19,29 +20,27 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        wab = ViewModelProviders.of(this)[WhatsAppBackups::class.java]
-
         val permissions = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-        ActivityCompat.requestPermissions(this, permissions, 0).apply {
-            populateUI()
-        }
+        ActivityCompat.requestPermissions(this, permissions, 0)
+
+        wab = ViewModelProviders.of(this)[WhatsAppBackups::class.java]
+        wab.hasWhatsApp.observe(this, Observer { hasWhatsApp ->
+            val msg: String
+            if (hasWhatsApp) {
+                msg = getString(R.string.whatsapp_detected)
+            } else {
+                msg = getString(R.string.whatsapp_undetected)
+            }
+            findViewById<TextView>(R.id.tvDetection).setText(msg)
+        })
+        wab.backups.observe(this, Observer { backups ->
+            val dbs = backups.map{it.name}.joinToString("\n")
+            val size = wab.size()
+            findViewById<TextView>(R.id.tvDatabases).setText(dbs)
+            findViewById<TextView>(R.id.tvSize).setText(sizeString(size))
+        })
 
         // https://developer.android.com/topic/libraries/architecture/workmanager
-    }
-
-    private fun populateUI() {
-        val backups = wab.backups()
-        findViewById<TextView>(R.id.tvDetection).apply {
-            text = if (backups.size > 0) {
-                getString(R.string.whatsapp_detected)
-            } else {
-                getString(R.string.whatsapp_undetected)
-            }
-        }
-
-        val dbs = backups.map{it.name}.joinToString("\n")
-        val size = backups.map{it.length()}.sum()
-        findViewById<TextView>(R.id.tvDatabases).setText(dbs + " " + sizeString(size))
     }
 
     private fun sizeString (size: Long) : String {

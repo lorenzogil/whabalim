@@ -1,6 +1,7 @@
 package com.lorenzogil.whabalim
 
 import android.os.Environment
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import java.io.File
 import java.util.*
@@ -13,57 +14,65 @@ class WhatsAppBackups : ViewModel() {
         private const val DATABASES_DIR = "/WhatsApp/Databases/"
     }
 
-    private var backupFiles = ArrayList<File>()
+    val hasWhatsApp = MutableLiveData<Boolean> ()
+    val backups = MutableLiveData<ArrayList<File>> ()
 
     init {
-        if (hasWhatsApp()) {
-            backupFiles = loadBackupFiles()
+        val dir = getDatabasesDir()
+        val hasWA = (dir.exists() && dir.isDirectory)
+        hasWhatsApp.value = hasWA
+        if (hasWA){
+            loadBackupFiles()
         }
     }
 
-    fun backups () : ArrayList<File> = backupFiles
+    fun size(): Long {
+        val result = backups.value?.map{it.length()}?.sum()
+        if (result == null) {
+            return 0L
+        } else {
+            return result
+        }
+    }
 
     private fun getDatabasesDir (): File {
         val root = Environment.getExternalStorageDirectory().absolutePath
         return File(root + DATABASES_DIR)
     }
 
-    private fun hasWhatsApp(): Boolean {
-        val dir = getDatabasesDir()
-        return (dir.exists() && dir.isDirectory)
-    }
-
-    private fun loadBackupFiles(): ArrayList<File> {
-        val files = ArrayList<File>()
+    private fun loadBackupFiles() {
+        backups.value = ArrayList<File> ()
         val dir = getDatabasesDir()
         dir.walk().forEach {
             if (it.isFile) {
-                files.add(it)
+                backups.value?.add(it)
             }
         }
-        return files
     }
 
     fun deleteBackups(days: Int) {
         val now = Date().time
         val threshold = days * 24 * 60 * 60 * 1000
         val logger = Logger.getLogger(WhatsAppBackups::class.java.name)
-        backupFiles.forEach {
+        backups.value?.forEach {
             if (it.exists()) {
                 if ((now - it.lastModified()) > threshold) {
                     if (it.absoluteFile.delete()) {
-                        logger.info("Successfully removing file " + it.name)
+                        logger.info("Successfully deleting file " + it.name)
                     } else {
                         if (it.exists()) {
-                            logger.warning("Error while removing the file " + it.name)
+                            logger.warning("Error while deleting the file " + it.name)
                         } else {
-                            logger.severe("The file does not exists " + it.name)
+                            logger.severe("File does not exists " + it.name)
                         }
                     }
+                } else {
+                    logger.info("File not selected to be deleted " + it.name)
                 }
             } else {
-                logger.warning("The file does not exist anymore " + it.name)
+                logger.warning("File does not exist " + it.name)
             }
         }
+        loadBackupFiles()
     }
 }
