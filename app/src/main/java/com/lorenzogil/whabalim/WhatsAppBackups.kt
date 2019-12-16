@@ -41,19 +41,21 @@ class WhatsAppBackups : ViewModel() {
     }
 
     private fun loadBackupFiles() {
-        backups.value = ArrayList<File> ()
+        val newList = ArrayList<File> ()
         val dir = getDatabasesDir()
         dir.walk().forEach {
             if (it.isFile) {
-                backups.value?.add(it)
+                newList.add(it)
             }
         }
+        backups.value = newList
     }
 
     fun deleteBackups(days: Int) {
         val now = Date().time
         val threshold = days * 24 * 60 * 60 * 1000
         val logger = Logger.getLogger(WhatsAppBackups::class.java.name)
+        logger.info("Deleting backups older than " + days + " days")
         backups.value?.forEach {
             if (it.exists()) {
                 if ((now - it.lastModified()) > threshold) {

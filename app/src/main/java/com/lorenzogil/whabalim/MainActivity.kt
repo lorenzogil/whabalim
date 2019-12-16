@@ -3,10 +3,12 @@ package com.lorenzogil.whabalim
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import java.util.logging.Logger
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,8 +36,10 @@ class MainActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.tvDetection).setText(msg)
         })
         wab.backups.observe(this, Observer { backups ->
+            val logger = Logger.getLogger(MainActivity::class.java.name)
             val dbs = backups.map{it.name}.joinToString("\n")
             val size = wab.size()
+            logger.info("The backups have changed. Updating the UI: " + size)
             findViewById<TextView>(R.id.tvDatabases).setText(dbs)
             findViewById<TextView>(R.id.tvSize).setText(sizeString(size))
         })
@@ -66,6 +70,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onDeleteClicked(view: View) {
-        wab.deleteBackups(2)
+        wab.deleteBackups(findViewById<SeekBar>(R.id.sbDays).progress)
     }
 }
