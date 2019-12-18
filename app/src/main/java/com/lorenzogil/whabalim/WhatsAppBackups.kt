@@ -35,6 +35,19 @@ class WhatsAppBackups : ViewModel() {
         }
     }
 
+    fun size(days: Int): Long {
+        val now = Date().time
+        val threshold = getThreshold(days)
+        val result = backups.value?.filter{
+            it.exists() && ((now - it.lastModified()) < threshold)
+        }?.map{it.length()}?.sum()
+        if (result == null) {
+            return 0L
+        } else {
+            return result
+        }
+    }
+
     private fun getDatabasesDir (): File {
         val root = Environment.getExternalStorageDirectory().absolutePath
         return File(root + DATABASES_DIR)
@@ -51,9 +64,13 @@ class WhatsAppBackups : ViewModel() {
         backups.value = newList
     }
 
+    private fun getThreshold(days: Int) : Int {
+        return days * 24 * 60 * 60 * 1000
+    }
+
     fun deleteBackups(days: Int) {
         val now = Date().time
-        val threshold = days * 24 * 60 * 60 * 1000
+        val threshold = getThreshold(days)
         val logger = Logger.getLogger(WhatsAppBackups::class.java.name)
         logger.info("Deleting backups older than " + days + " days")
         backups.value?.forEach {

@@ -1,5 +1,7 @@
 package com.lorenzogil.whabalim
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -17,13 +19,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var wab: WhatsAppBackups
+    private lateinit var preferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        preferences = getSharedPreferences(getString(R.string.preferences_file), Context.MODE_PRIVATE)
+        val defaultDays = resources.getInteger(R.integer.default_days)
+        val days = preferences.getInt(getString(R.string.preference_days), defaultDays)
+
         val permissions = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
         ActivityCompat.requestPermissions(this, permissions, 0)
+
+        val tvSize = findViewById<TextView>(R.id.tvSize)
+        val skDays = findViewById<SeekBar>(R.id.sbDays)
+        skDays.progress = days
+        val tvDays = findViewById<TextView>(R.id.tvDays)
 
         wab = ViewModelProviders.of(this)[WhatsAppBackups::class.java]
         wab.hasWhatsApp.observe(this, Observer { hasWhatsApp ->
@@ -41,7 +53,28 @@ class MainActivity : AppCompatActivity() {
             val size = wab.size()
             logger.info("The backups have changed. Updating the UI: " + size)
             findViewById<TextView>(R.id.tvDatabases).setText(dbs)
-            findViewById<TextView>(R.id.tvSize).setText(sizeString(size))
+            tvSize.setText(sizeString(size))
+        })
+
+        tvDays.setText(getDaysMsg(skDays.progress))
+
+        skDays.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                tvDays.setText(getDaysMsg(progress))
+                tvSize.setText(sizeString(wab.size(progress)))
+                with (preferences.edit()) {
+                    putInt(getString(R.string.preference_days), progress)
+                    commit()
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+            }
         })
 
         // https://developer.android.com/topic/libraries/architecture/workmanager
@@ -67,6 +100,14 @@ class MainActivity : AppCompatActivity() {
             unit = "Bytes"
         }
         return "%.2f %s".format(space, unit)
+    }
+
+    private fun getDaysMsg (days: Int) : String {
+        if (days == 1) {
+            return "Keep %d day of backups".format(days)
+        } else {
+            return "Keep %d days of backups".format(days)
+        }
     }
 
     fun onDeleteClicked(view: View) {
