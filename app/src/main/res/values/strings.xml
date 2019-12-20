@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">WhatsApp Backup Limiter</string>
-    <string name="whatsapp_detected">WhatsApp backups are using this space in your device:</string>
-    <string name="whatsapp_undetected">You don\'t have WhatsApp installed in your system</string>
+    <string name="channel_id">com.lorenzogil.whabalim.periodicUpdates</string>
+    <string name="channel_description">Periodic Updates</string>
+    <string name="channel_name">Periodic Updates</string>
     <string name="delete_old_backups">Delete old backups</string>
     <string name="preferences_file">com.lorenzogil.whabalim.preferences</string>
     <string name="preference_days">days_to_keep</string>
+    <string name="whatsapp_detected">WhatsApp backups are using this space in your device:</string>
+    <string name="whatsapp_undetected">You don\'t have WhatsApp installed in your system</string>
 </resources>

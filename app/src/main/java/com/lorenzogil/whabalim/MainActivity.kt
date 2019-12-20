@@ -10,7 +10,10 @@ import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.work.*
+import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -77,7 +80,14 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // https://developer.android.com/topic/libraries/architecture/workmanager
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "cleaner",
+            ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<BackupsCleanerWorker>(
+                1,
+                TimeUnit.HOURS
+            ).build()
+        )
     }
 
     private fun sizeString (size: Long) : String {
