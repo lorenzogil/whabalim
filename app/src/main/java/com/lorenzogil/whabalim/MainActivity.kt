@@ -82,10 +82,10 @@ class MainActivity : AppCompatActivity() {
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "cleaner",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.REPLACE,
             PeriodicWorkRequestBuilder<BackupsCleanerWorker>(
                 1,
-                TimeUnit.HOURS
+                TimeUnit.DAYS
             ).build()
         )
     }
