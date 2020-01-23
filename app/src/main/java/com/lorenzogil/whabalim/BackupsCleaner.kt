@@ -2,7 +2,6 @@ package com.lorenzogil.whabalim
 
 import android.os.Environment
 import java.io.File
-import java.util.*
 import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
@@ -37,32 +36,27 @@ class BackupsCleaner {
         return days * 24 * 60 * 60 * 1000
     }
 
-    fun deleteBackups(days: Int, backups: ArrayList<File>): Int {
-        val now = Date().time
-        val threshold = getThreshold(days)
+    fun deleteBackups(amount: Int, backups: ArrayList<File>): Int {
         val logger = Logger.getLogger(BackupsCleaner::class.java.name)
         var result = 0
-        logger.info("Deleting backups older than " + days + " days")
-        backups.forEach {
+        logger.info("Keeping " + amount + " backups from " + backups.size)
+        val toDelete = backups.sortedBy { it.lastModified() }.dropLast(amount)
+        toDelete.forEach( {
             if (it.exists()) {
-                if ((now - it.lastModified()) > threshold) {
-                    if (it.absoluteFile.delete()) {
-                        logger.info("Successfully deleting file " + it.name)
-                        result += 1
-                    } else {
-                        if (it.exists()) {
-                            logger.warning("Error while deleting the file " + it.name)
-                        } else {
-                            logger.severe("File does not exists " + it.name)
-                        }
-                    }
+                if (it.absoluteFile.delete()) {
+                    logger.info("Successfully deleting file " + it.name)
+                    result += 1
                 } else {
-                    logger.info("File not selected to be deleted " + it.name)
+                    if (it.exists()) {
+                        logger.warning("Error while deleting the file " + it.name)
+                    } else {
+                        logger.severe("File does not exists " + it.name)
+                    }
                 }
             } else {
                 logger.warning("File does not exist " + it.name)
             }
-        }
+        })
         return result
     }
 
