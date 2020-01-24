@@ -1,11 +1,9 @@
 package com.lorenzogil.whabalim
 
-import android.os.Environment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import java.io.File
 import java.util.*
-import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
 class WhatsAppBackups : ViewModel() {
@@ -45,12 +43,14 @@ class WhatsAppBackups : ViewModel() {
         }
     }
 
-    fun deleteBackups(days: Int) {
+    fun deleteBackups(days: Int): Int {
         val backupsCleaner = BackupsCleaner()
         val value = backups.value
+        var result = 0
         if (value != null) {
-            backupsCleaner.deleteBackups(days, value)
+            result = backupsCleaner.deleteBackups(days, value)
             backups.value = backupsCleaner.getBackupFiles()
         }
+        return result
     }
 }

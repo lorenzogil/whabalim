@@ -6,7 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.SeekBar
+import android.widget.Switch
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -79,15 +81,6 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "cleaner",
-            ExistingPeriodicWorkPolicy.REPLACE,
-            PeriodicWorkRequestBuilder<BackupsCleanerWorker>(
-                1,
-                TimeUnit.DAYS
-            ).build()
-        )
     }
 
     private fun sizeString (size: Long) : String {
@@ -121,6 +114,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onDeleteClicked(view: View) {
-        wab.deleteBackups(findViewById<SeekBar>(R.id.sbDays).progress)
+        val result = wab.deleteBackups(findViewById<SeekBar>(R.id.sbDays).progress)
+        val msg: String
+        if (result == 0) {
+            msg = "No backups were removed"
+        } else if (result == 1) {
+            msg = "1 backup was removed"
+        } else {
+            msg = result.toString() + " backups were removed"
+        }
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+    }
+
+    fun onSwitchClicked(view: View) {
+        val logger = Logger.getLogger(MainActivity::class.java.name)
+        val switch = view as Switch
+        if (switch.isChecked) {
+            logger.info("Enabling the daily removal of backups")
+            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "cleaner",
+                ExistingPeriodicWorkPolicy.REPLACE,
+                PeriodicWorkRequestBuilder<BackupsCleanerWorker>(
+                    1,
+                    TimeUnit.DAYS
+                ).build()
+            )
+        } else {
+            logger.info("Disabling the daily removal of backups")
+            WorkManager.getInstance(this).cancelUniqueWork("cleaner")
+        }
     }
 }
