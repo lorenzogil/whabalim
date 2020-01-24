@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WhatsApp Backup Limiter</string>
+    <string name="app_name">WhatsApp Clamp</string>
     <string name="channel_id">com.lorenzogil.whabalim.periodicUpdates</string>
     <string name="channel_description">Periodic Updates</string>
     <string name="channel_name">Periodic Updates</string>
