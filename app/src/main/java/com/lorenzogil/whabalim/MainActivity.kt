@@ -1,7 +1,9 @@
 package com.lorenzogil.whabalim
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -10,6 +12,7 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.work.*
@@ -21,6 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     private companion object {
         private const val DATABASES_DIR = "/WhatsApp/Databases/"
+        private const val REQUEST_READ_EXTERNAL_STORAGE = 1
     }
 
     private lateinit var wab: WhatsAppBackups
@@ -31,11 +35,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         preferences = getSharedPreferences(getString(R.string.preferences_file), Context.MODE_PRIVATE)
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED) {
+            val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_READ_EXTERNAL_STORAGE)
+        } else {
+            populateUI()
+        }
+
+    }
+
+    private fun populateUI () {
         val defaultDays = resources.getInteger(R.integer.default_days)
         val days = preferences.getInt(getString(R.string.preference_days), defaultDays)
-
-        val permissions = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-        ActivityCompat.requestPermissions(this, permissions, 0)
 
         val tvSize = findViewById<TextView>(R.id.tvSize)
         val skDays = findViewById<SeekBar>(R.id.sbDays)
@@ -85,6 +98,30 @@ class MainActivity : AppCompatActivity() {
         val isScheduled = preferences.getBoolean(getString(R.string.preference_is_scheduled), false)
         val swScheduler = findViewById<Switch>(R.id.swScheduler)
         swScheduler.isChecked = isScheduled
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            REQUEST_READ_EXTERNAL_STORAGE -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    populateUI()
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    // TODO: tell the user this permission is required otherwise this app is useless
+                }
+                return
+            }
+            // Add other 'when' lines to check for other
+            // permissions this app might request.
+            else -> {
+                // Ignore all other requests.
+            }
+        }
+
     }
 
     private fun sizeString (size: Long) : String {
