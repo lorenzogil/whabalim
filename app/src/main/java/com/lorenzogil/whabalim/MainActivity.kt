@@ -81,6 +81,10 @@ class MainActivity : AppCompatActivity() {
 
             }
         })
+
+        val isScheduled = preferences.getBoolean(getString(R.string.preference_is_scheduled), false)
+        val swScheduler = findViewById<Switch>(R.id.swScheduler)
+        swScheduler.isChecked = isScheduled
     }
 
     private fun sizeString (size: Long) : String {
@@ -129,6 +133,7 @@ class MainActivity : AppCompatActivity() {
     fun onSwitchClicked(view: View) {
         val logger = Logger.getLogger(MainActivity::class.java.name)
         val switch = view as Switch
+        val isScheduled: Boolean
         if (switch.isChecked) {
             logger.info("Enabling the daily removal of backups")
             WorkManager.getInstance(this).enqueueUniquePeriodicWork(
@@ -139,9 +144,15 @@ class MainActivity : AppCompatActivity() {
                     TimeUnit.DAYS
                 ).build()
             )
+            isScheduled = true
         } else {
             logger.info("Disabling the daily removal of backups")
             WorkManager.getInstance(this).cancelUniqueWork("cleaner")
+            isScheduled = false
+        }
+        with (preferences.edit()) {
+            putBoolean(getString(R.string.preference_is_scheduled), isScheduled)
+            commit()
         }
     }
 }
