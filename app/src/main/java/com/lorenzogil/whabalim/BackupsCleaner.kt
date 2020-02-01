@@ -36,6 +36,10 @@ class BackupsCleaner {
         return days * 24 * 60 * 60 * 1000
     }
 
+    fun getSize(amount: Int, backups: ArrayList<File>): Long {
+        return backups.sortedBy { it.lastModified() }.takeLast(amount).map{it.length()}.sum()
+    }
+
     fun deleteBackups(amount: Int, backups: ArrayList<File>): Int {
         val logger = Logger.getLogger(BackupsCleaner::class.java.name)
         var result = 0

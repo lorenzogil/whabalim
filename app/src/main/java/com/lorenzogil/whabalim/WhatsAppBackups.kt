@@ -31,16 +31,12 @@ class WhatsAppBackups : ViewModel() {
 
     fun size(days: Int): Long {
         val backupsCleaner = BackupsCleaner()
-        val now = Date().time
-        val threshold = backupsCleaner.getThreshold(days)
-        val result = backups.value?.filter{
-            it.exists() && ((now - it.lastModified()) < threshold)
-        }?.map{it.length()}?.sum()
-        if (result == null) {
-            return 0L
-        } else {
-            return result
+        val value = backups.value
+        var result = 0L
+        if (value != null) {
+            result = backupsCleaner.getSize(days, value)
         }
+        return result
     }
 
     fun deleteBackups(days: Int): Int {
