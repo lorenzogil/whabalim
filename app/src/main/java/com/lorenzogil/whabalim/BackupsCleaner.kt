@@ -32,10 +32,6 @@ class BackupsCleaner {
         return result
     }
 
-    fun getThreshold(days: Int) : Int {
-        return days * 24 * 60 * 60 * 1000
-    }
-
     fun getSize(amount: Int, backups: ArrayList<File>): Long {
         return backups.sortedBy { it.lastModified() }.takeLast(amount).map{it.length()}.sum()
     }
